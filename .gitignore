@@ -1,0 +1,11 @@
+/data
+/exports
+.venv
+/__pycache__
+*.mp4
+/plotly_files
+.idea/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+/backup
