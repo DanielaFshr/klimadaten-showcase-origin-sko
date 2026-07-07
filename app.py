@@ -120,6 +120,12 @@ month_labels = {
     7: "Jul", 8: "Aug", 9: "Sep", 10: "Okt", 11: "Nov", 12: "Dez",
 }
 
+y_axis_labels = {
+    "temperature_mean": "Grad Celsius",
+    "hot_days_mean": "Tage",
+    "gdd": "GDD",
+}
+
 #Settings für Map B und Section C
 ZONE_COLORS_DE = {
     "Mittelland": ZONE_COLORS["Midlands"],
@@ -257,7 +263,7 @@ def make_elevation_trend_plot(df):
         title=None,
         height=440,
         margin=dict(l=40, r=20, t=40, b=40),
-        xaxis_title="Monat",
+        xaxis_title=None,
         yaxis_title="Erwärmungstrend (°C pro Jahrzehnt)",
         dragmode=False,
         legend=dict(
@@ -336,7 +342,7 @@ def make_heat_days_plot(df):
         title=None,
         height=440,
         margin=dict(l=50, r=20, t=20, b=50),
-        xaxis_title="Jahr",
+        xaxis_title=None,
         yaxis_title="Anzahl Hitzetage",
         legend_title_text="Höhenzone",
         dragmode=False,
@@ -654,7 +660,7 @@ def make_gdd_threshold_plot(df):
         margin=dict(l=60, r=20, t=20, b=55),
         plot_bgcolor="white",
         paper_bgcolor="white",
-        xaxis_title="Jahr",
+        xaxis_title=None,
         yaxis_title="Datum, an dem 300 GDD erreicht werden",
         legend_title_text="Höhenzone",
         dragmode=False,
@@ -694,16 +700,27 @@ def make_gdd_threshold_plot(df):
     return fig
 
 
-# Funktionen für die Textelemente
-def info_text_box(title, paragraphs, note=None, image=None):
+# Funktionen für die Textelemente in Section C und E
+def info_text_box(title, paragraphs, note=None):
+    paragraph_elements = []
+
+    for p in paragraphs:
+        if isinstance(p, str):
+            paragraph_elements.append(html.P(p))
+        else:
+            paragraph_elements.append(html.P(p))
+
+    children = [
+        html.P(title, className="content-title"),
+        *paragraph_elements,
+    ]
+
+    if note:
+        children.append(html.Div(note, className="small-note"))
+
     return html.Div(
         className="analysis-text-card",
-        children=[
-            html.H3(title),
-            *[html.P(p) for p in paragraphs],
-            image if image else None,
-            html.Div(className="small-note", children=note) if note else None,
-        ],
+        children=children,
     )
 
 
@@ -711,7 +728,7 @@ def mini_info_box(title, paragraphs):
     return html.Div(
         className="mini-info-card",
         children=[
-            html.H3(title),
+            html.P(title, className="content-title"),
             *[html.P(p) for p in paragraphs],
         ],
     )
@@ -720,7 +737,7 @@ def sdg_relevance(midlands, prealps, alps):
     return html.Div(
         className="sdg-zone-rating",
         children=[
-            html.H4("Besonders relevant für"),
+            html.P("Besonders relevant für", className="mini-title"),
             html.Div([html.Span("Mittelland"), html.Span(midlands)]),
             html.Div([html.Span("Voralpen"), html.Span(prealps)]),
             html.Div([html.Span("Alpen"), html.Span(alps)]),
@@ -737,7 +754,7 @@ def sdg_card(img, title, text, rating, color):
                 className="sdg-logo-col",
                 children=[
                     html.Img(src=img, className="sdg-icon"),
-                    html.H3(title),
+                    html.P(title, className="content-title"),
                 ],
             ),
             html.Div(text, className="sdg-card-text"),
@@ -848,43 +865,84 @@ app.layout = html.Div(
             className="section hero-section",
             children=[
                 html.Div(
+                    className="wide-image-wrap hero-image-wrap",
+                    children=[
+                        html.Img(
+                            src="/assets/herzogenbuchsee.jpg",
+                            className="wide-image hero-image",
+                        )
+                    ]
+                ),
+                html.Div(
                     className="hero-layout",
                     children=[
                         html.Div(
                             className="hero-main",
                             children=[
-                                html.H1("Wie verändert sich das Klima vor deiner Haustüre?"),
+                                html.H1("Das Klima vor deiner Haustüre"),
                                 html.H2(
-                                    "Wir betrachten Auswirkungen auf unseren Alltag, unsere Umgebung und die regionale Lebensmittelproduktion."
+                                    "Wie verändert sich unser Alltag, unsere Umgebung und die regionale Lebensmittelproduktion?"
                                 ),
                                 html.P(
                                     "Klimaveränderungen machen sich in deinem Umfeld direkt bemerkbar: "
                                     "Hitzetage im Sommer, frühere Pflanzenentwicklung im Frühling, "
                                     "weniger Schnee im Winter, ein veränderter Wasserhaushalt und "
-                                    "Extremwetter-Ereignisse stellen Mensch und Natur vor neue Herausforderungen."
+                                    "Extremwetter-Ereignisse stellen dich und die Natur vor neue Herausforderungen."
                                 ),
                                 html.P(
-                                    "Davon betroffen sind nicht nur Landwirtschaft und Ökosysteme. Auch Gesundheit, "
-                                    "Energieversorgung und Ernährungssicherheit stehen in engem Zusammenhang mit den "
-                                    "klimatischen Bedingungen vor Ort."
+                                    "Landwirtschaft und Ökosysteme, Gesundheit und Energieversorgung sowie Ernährungssicherheit "
+                                    "beschäftigen nicht nur Experten, sondern zunehmend auch Gemeinden, Firmen und dein Umfeld."
                                 ),
                                 html.P(
-                                    "Temperaturentwicklung, Vegetationsperioden und Wasserverfügbarkeit verändern "
-                                    "sich jedoch nicht überall gleich. Die Auswirkungen unterscheiden sich je nach "
+                                    "Herausforderungen in diesen Bereichen bewegen uns nicht überall gleich: Die Auswirkungen unterscheiden sich je nach "
                                     "Region und Höhenlage."
                                 ),
+
+                                html.Div(
+                                    className="toc-card",
+                                    children=[
+                                        html.P("Was dich erwartet", className="content-title"),
+                                        html.Div(
+                                            className="toc-links",
+                                            children=[
+                                                html.A("Interaktive Schweizerkarte",
+                                                       href="#section-b"),
+                                                html.A("Klima Knowhow",
+                                                       href="#section-c"),
+                                                html.A("Einordnung Alltag und Lebensmittelproduktion",
+                                                       href="#section-d"),
+                                                html.A("UN-Klimaziele im Kontext",
+                                                       href="#section-e"),
+                                            ],
+                                        ),
+
+                                    ],
+                                ),
+                                html.Div(
+                                    "Starte mit einem Ort auf der Schweizerkarte oder lies zuerst die Story aus Effingen.",
+                                    className="start-note section-lead section-lead-small",
+                                ),
+
+
                             ],
                         ),
                     ],
                 ),
 
+
+
                 html.Div(
-                    className="intro-block",
+                    className="intro-block farm-story-card",
                     children=[
                         html.Div(
                             className="intro-text",
                             children=[
-                                html.H2("Vom Klimatrend zum konkreten Alltag"),
+                                html.P("Landwirtschaftstory", className="kicker"),
+                                html.P("Wenn das Heu knapp wird", className="article-title"),
+                                html.P(
+                                    "Wie Klimawandel auf einem kleinen Hof im Fricktal spürbar wird",
+                                    className="subtitle",
+                                ),
                                 html.P(
                                     "Ein Beispiel aus Effingen im aargauischen Fricktal zeigt, wie sich "
                                     "solche Entwicklungen auf einen kleinen Landwirtschaftsbetrieb auswirken können. "
@@ -893,7 +951,7 @@ app.layout = html.Div(
                                 ),
 
 
-                                html.H3("Die Lieferung"),
+                                html.P("Die Lieferung", className="content-title"),
                                 html.P(
                                     "Motorenlärm und ein dumpfes Rumpeln durchdringen die nachmittägliche Stille auf "
                                     "dem Hof von Mathias. Auf der angrenzenden Weide halten imposante "
@@ -901,7 +959,7 @@ app.layout = html.Div(
                                     "Richtung des herannahenden Traktors. Mathias begrüsst den Kollegen erleichtert "
                                     "per Handschlag und die beiden machen sich sogleich daran, die Heuballen abzuladen."
                                 ),
-                                html.H3("Was war passiert?"),
+                                html.P("Was war passiert?", className="content-title"),
                                 html.P(
                                     "Schon der Frühling war ausgesprochen trocken und heiss gewesen, der Sommer sowieso. "
                                     "Dies hatte dazu geführt, dass der Ertrag der Grasflächen viel zu tief ausgefallen "
@@ -909,7 +967,7 @@ app.layout = html.Div(
                                     "Tieren nicht über den Winter reichen würden. Über eine Futterbörse stiess er schliesslich "
                                     "auf das Angebot seines Berufskollegen aus der Region Luzern und liess mehrere Heuballen anliefern."
                                 ),
-                                html.H3("Regionale Unterschiede"),
+                                html.P("Regionale Unterschiede", className="content-title"),
                                 html.P(
                                     "Auf den ersten Blick erscheint das überraschend. Die Bewirtschaftung steiler "
                                     "Wiesen in den Voralpen und Alpen ist oft aufwendiger als im Mittelland. "
@@ -921,8 +979,8 @@ app.layout = html.Div(
                                     "und Höhenlage fallen die Veränderungen jedoch unterschiedlich stark aus. "
                                 ),
                                 html.P(
-                                    "Ein Klick auf die nachfolgende Karte zeigt dir, wie sich das Klima an deinem "
-                                    "Wunschort entwickelt, künftig entwickeln könnte und welche Rolle die Höhenlage dabei spielt."
+                                    "Auf der interaktiven Karte kannst du prüfen, ob ähnliche Muster auch an anderen "
+                                    "Orten sichtbar werden."
                                 ),
                             ],
                         ),
@@ -930,8 +988,11 @@ app.layout = html.Div(
                         html.Div(
                             className="hero-video-card intro-video",
                             children=[
-                                html.P("Hinter den Kulissen", className="video-kicker"),
-                                html.H3("Landwirt Mathias vom Bollhof Effingen im Kurzporträt"),
+                                html.P("Hinter den Kulissen", className="kicker"),
+                                html.P(
+                                    "Landwirt Mathias vom Bollhof Effingen im Kurzporträt",
+                                    className="content-title",
+                                ),
                                 html.P("Ein Video von 'Leimenhof on Tour'", className="video-caption"),
                                 html.Iframe(
                                     src="https://www.youtube.com/embed/VwEjDaPDEXI",
@@ -950,21 +1011,7 @@ app.layout = html.Div(
                         ),
                     ],
                 ),
-                html.Div(
-                    className="toc-card",
-                    children=[
-                        html.H3("Auf dieser Seite erfährst du:"),
-                        html.Div(
-                            className="toc-links",
-                            children=[
-                                html.A("📍 Wie sich das Klima an deinem Wohnort verändert", href="#section-b"),
-                                html.A("🌡 Warum sich die Schweiz nicht überall gleich erwärmt", href="#section-c"),
-                                html.A("🍎 Auswirkungen auf Alltag und Lebensmittelproduktion", href="#section-d"),
-                                html.A("🌱 Was das mit den UN-Klimazielen zu tun hat", href="#section-e"),
-                            ],
-                        ),
-                    ],
-                ),
+
             ],
         ),
 
@@ -976,26 +1023,12 @@ app.layout = html.Div(
                 html.Div(
                     className="content-block",
                     children=[
-                        html.P("Interaktive Karte", className="section-step"),
+                        html.P("Interaktive Karte", className="kicker"),
                         html.H2("Erkunde deine Region"),
-                        html.H3(
-                            "Klicke auf einen Ort in der Karte, um die lokale "
-                            "Klimaveränderung zu erkunden."
-                        ),
                         html.P(
-                        "Die Karte zeigt ausgewählte Orte in verschiedenen Höhenlagen der Schweiz. Wähle einen Ort, um lokale Veränderungen von Temperatur, Vegetationsperiode und weiteren Klimakenngrössen zu erkunden. Die Standorte decken das Mittelland, die Voralpen und die Alpen ab und ermöglichen einen Vergleich zwischen den Höhenzonen. Anschliessend können verschiedene Klimametriken und Erwärmungsszenarien ausgewählt werden."
-                        ),
-                        html.P(
-                            "Die Höhenzonen werden im Dashboard als Mittelland (bis 700 m), Voralpen (700–1500 m) und Alpen (ab 1500 m) zusammengefasst. "
-                        ),
-                        html.P(
-                             "Wärmesumme (GDD): Mass für die während eines Jahres verfügbare Wärmeenergie für Pflanzen."
-                        ),
-                        html.P(
-                            "Hitzetage: Tage mit mindestens 30 °C Tagesmaximum."
-                        ),
-                        html.P(
-                            "Erwärmung: Die Szenarien beschreiben eine globale Erwärmung von 1.5 °C bis 3.0 °C gegenüber dem vorindustriellen Klima."
+                            "Wähle einen Ort und vergleiche, wie sich Temperatur, Hitzetage "
+                            "oder Wärmesumme unter verschiedenen Erwärmungsszenarien verändern.",
+                            className="subtitle",
                         ),
                     ]
                 ),
@@ -1099,43 +1132,114 @@ app.layout = html.Div(
                         html.Div(
                             className="insight-card place-description-card",
                             children=[
-                                html.Strong("Ortsprofil"),
+                                html.P("Ortsprofil", className="content-title"),
                                 html.Div(id="place-description"),
                             ],
                         ),
                         html.Div(
                             className="insight-card interpretation-card",
                             children=[
-                                html.Strong("Was zeigt die Grafik?"),
+                                html.P("Was zeigt die Grafik?", className="content-title"),
                                 html.Div(id="profile-interpretation"),
                             ],
                         ),
                     ],
-                )
+                ),
+                html.Div(
+                    className="map-help-card",
+                    children=[
+                        html.P("Begriffe kurz erklärt", className="content-title"),
+                        html.Div(
+                            className="map-help-grid",
+                            children=[
+                                html.Div(
+                                    className="map-help-item",
+                                    children=[
+                                        html.Div("🌡", className="map-help-icon"),
+                                        html.Div(
+                                            children=[
+                                                html.P("Hitzetage", className="mini-title"),
+                                                html.P("Tage mit mindestens 30 °C Tagesmaximum"),
+                                            ]
+                                        ),
+                                    ],
+                                ),
+                                html.Div(
+                                    className="map-help-item",
+                                    children=[
+                                        html.Div("🌱", className="map-help-icon"),
+                                        html.Div(
+                                            children=[
+                                                html.P("Wärmesumme GDD", className="mini-title"),
+                                                html.P(
+                                                    "Aufsummierte Wärme oberhalb von 5 °C, "
+                                                    "ein Mass für die Pflanzenentwicklung"
+                                                ),
+                                            ]
+                                        ),
+                                    ],
+                                ),
+                                html.Div(
+                                    className="map-help-item",
+                                    children=[
+                                        html.Div("⛰", className="map-help-icon"),
+                                        html.Div(
+                                            children=[
+                                                html.P("Höhenzonen", className="mini-title"),
+                                                html.P(
+                                                    "Mittelland bis 700 m, Voralpen 700–1500 m, "
+                                                    "Alpen ab 1500 m"
+                                                ),
+                                            ]
+                                        ),
+                                    ],
+                                ),
+                                html.Div(
+                                    className="map-help-item",
+                                    children=[
+                                        html.Div("📈", className="map-help-icon"),
+                                        html.Div(
+                                            children=[
+                                                html.P("Szenarien", className="mini-title"),
+                                                html.P(
+                                                    "Mögliche Klimazustände bei 1.5 °C, 2.0 °C, "
+                                                    "2.5 °C oder 3.0 °C globaler Erwärmung"
+                                                ),
+                                            ]
+                                        ),
+                                    ],
+                                ),
+                            ],
+                        ),
+                    ],
+                ),
 
-            ]
+
+            ],
         ),
 
         # SECTION C ---------------------------------------------------
         html.Section(
             id="section-c",
-            className="story-section wave-right section-c",
+            className="section story-section wave-right section-c",
             children=[
                 html.Div(
+                    className="wide-image-wrap",
                     children=[
                         html.Img(
-                            src="/assets/Applebloom.jpg",
-                            style={"width": "300px", "height": "auto", "border": None},
+                            src="/assets/ballmoos.jpg",
+                            className="wide-image",
                         )
                     ]
                 ),
                 html.Div(
                     className="section-header",
                     children=[
-                        html.P("Klima Knowhow", className="section-step"),
+                        html.P("Klima Knowhow", className="kicker"),
                         html.H2("Warum verändert sich die Schweiz nicht überall gleich?"),
-                        html.H3(
-                            "Bevor wir einzelne Auswirkungen betrachten, lohnt sich ein Blick auf einige wichtige Zusammenhänge."
+                        html.P(
+                            "Bevor wir einzelne Auswirkungen betrachten, lohnt sich ein Blick auf einige wichtige Zusammenhänge.",
+                            className="subtitle",
                         ),
                     ],
                 ),
@@ -1145,7 +1249,7 @@ app.layout = html.Div(
                         mini_info_box(
                             "Klimaszenarien CH2025: Ein Blick in die Zukunft",
                             [
-                                "Die Schweizer Klimaszenarien zeigen, wie sich das Klima bei verschiedenen globalen Erwärmungsniveaus verändern könnte. Im Dashboard werden drei Szenarien betrachtet: 1.5°C, 2°C und 3°C globale Erwärmung gegenüber dem vorindustriellen Klima.",
+                                "Die Schweizer Klimaszenarien zeigen, wie sich das Klima bei verschiedenen globalen Erwärmungsniveaus verändern könnte. Im Dashboard werden vier Szenarien betrachtet: 1.5°C, 2°C, 2.5°C und 3°C globale Erwärmung gegenüber dem vorindustriellen Klima.",
                                 "Die Szenarien beschreiben nicht ein bestimmtes Jahr, sondern den Klimazustand, der sich einstellt, sobald dieses Erwärmungsniveau erreicht wird. Die Abkürzung GWL steht für 'Global Warming Level' (globales Erwärmungsniveau).",
                             ],
                         ),
@@ -1155,15 +1259,33 @@ app.layout = html.Div(
                     className="analysis-block",
                     children=[
                         info_text_box(
-                            "Saisonale Erwärmung nach Höhenzone",
+                            "Das Mittelland erwärmt sich im Winter und Sommer stärker",
                             [
                                 "Diese Darstellung zeigt, wie sich die Erwärmung je nach Jahreszeit und Höhenzone unterscheidet.",
                                 "Die Werte auf der y-Achse zeigen Erwärmungstrends in °C pro Jahrzehnt und keine absoluten Temperaturen.",
-                                "Im Mittelland fällt die Erwärmung besonders im Winter und Sommer auf. Die stärkere Wintererwärmung wird mit dem Rückgang von Hochnebel und Inversionslagen in Verbindung gebracht (siehe Abbildung 4).",
-                                "In den Voralpen zeigt sich eine ausgeprägte Frühlingserwärmung, die zu einem früheren Vegetationsbeginn führen kann (siehe Abbildung 5).",
-                                "Die starke Sommererwärmung im Mittelland steht zudem im Zusammenhang mit der Zunahme von Hitzetagen (siehe Abbildung 3).",
+                                html.P([
+                                    "Im Mittelland fällt die Erwärmung besonders im Winter und Sommer auf. "
+                                    "Die stärkere Wintererwärmung wird mit dem Rückgang von Hochnebel und ",
+                                    html.A("Inversionslagen", href="#inversions", className="text-link"),
+                                    " in Verbindung gebracht.",
+                                ]),
+                                html.P([
+                                    "In den Voralpen zeigt sich eine ausgeprägte Frühlingserwärmung, "
+                                    "die zu einem früheren ",
+                                    html.A("Vegetationsbeginn", href="#gdd300", className="text-link"),
+                                    " führen kann.",
+                                ]),
+                                html.P([
+                                    "Die starke Sommererwärmung im Mittelland steht zudem im Zusammenhang "
+                                    "mit der Zunahme von ",
+                                    html.A("Hitzetagen", href="#heatdays", className="text-link"),
+                                    ".",
+                                ]),
                             ],
-                            note="Die Darstellung macht sichtbar, dass sich die Klimaerwärmung je nach Jahreszeit und Höhenlage unterschiedlich ausprägt.",
+                            note=(
+                                "Die tiefsten Werte zeigen sich im Februar und September. Beide liegen in saisonalen Übergangsphasen, "
+                                "in denen Wetterlagen häufig wechseln und keine Jahreszeit dominiert."
+                            ),
                         ),
                         html.Div(
                             className="analysis-visual-card",
@@ -1178,12 +1300,12 @@ app.layout = html.Div(
                         ),
                     ],
                 ),
-
                 html.Div(
+                    id="heatdays",
                     className="analysis-block",
                     children=[
                         info_text_box(
-                            "Hitzetage nach Höhenzone",
+                            "Hitzetage nehmen vor allem in tiefen Lagen zu",
                             [
                                 "Diese Darstellung zeigt die jährliche Anzahl Hitzetage in den verschiedenen Höhenzonen.",
                                 "Ein Hitzetag ist ein Tag mit einer Höchsttemperatur von mindestens 30 °C.",
@@ -1191,7 +1313,7 @@ app.layout = html.Div(
                                 "Die Alpen verzeichnen im betrachteten Zeitraum keine Hitzetage.",
                                 "Der markante Ausschlag im Jahr 2003 steht für den aussergewöhnlichen Hitzesommer, der in vielen Teilen Europas 14 aufeinanderfolgende Hitzetage im August und weitere Wetter-Anomalien brachte.",
                             ],
-                            note="Die Darstellung zeigt, dass Hitzetage vor allem in tieferen Lagen auftreten und im Laufe der Zeit häufiger geworden sind.",
+                            note="Als weiteren interessanten Punkt sehen wir, dass es in den Alpen bislang noch keine Hitzetage im Sinne der Definition von mindestens 30 °C gab.",
                         ),
                         html.Div(
                             className="analysis-visual-card",
@@ -1207,6 +1329,7 @@ app.layout = html.Div(
                     ],
                 ),
                 html.Div(
+                    id="inversions",
                     className="analysis-block",
                     children=[
                         info_text_box(
@@ -1220,7 +1343,7 @@ app.layout = html.Div(
                             ],
 
                             note=(
-                                "Der Vergleich zeigt, wie sich die Temperatur mit der Höhe normalerweise verhält und wie dieses Muster bei einer Inversionslage verändert wird."
+                                "Der Vergleich zeigt, wie sich Temperatur und Höhe normalerweise zueinander verhalten und wie sich dieses Muster bei einer Inversionslage verändert."
                             ),
                         ),
                         html.Div(
@@ -1237,18 +1360,18 @@ app.layout = html.Div(
 
                     ],
                 ),
-
                 html.Div(
+                    id="gdd300",
                     className="analysis-block",
                     children=[
                         info_text_box(
-                            "Frühere Pflanzenentwicklung",
+                            "Pflanzen erreichen Wärmeschwelle früher im Jahr",
                             [
                                 "Growing Degree Days (GDD) beschreiben die aufsummierte Wärme oberhalb von 5 °C. Sie werden unter anderem in der Landwirtschaft und im Weinbau verwendet, um die Entwicklung von Pflanzen abzuschätzen.",
                                 "Der Schwellenwert von 300 GDD steht für eine frühe Phase der Vegetationsperiode und eignet sich deshalb gut für den Vergleich zwischen den Höhenzonen.",
                                 "In allen Höhenzonen wird dieser Wert heute früher im Jahr erreicht. Eine frühere Pflanzenentwicklung kann die Anfälligkeit junger Pflanzen gegenüber Spätfrost und Hagel erhöhen.",
                             ],
-                            note="Höher im Diagramm bedeutet: Der Schwellenwert von 300 GDD wird früher im Jahr erreicht.",
+                            note="300 GDD bedeuten je nach Pflanzenart und Region ganz unterschiedliche Wachstumsphasen, z.B. Austrieb, Blüte oder eine Übergangsphase.",
                         ),
                         html.Div(
                             className="analysis-visual-card",
@@ -1288,11 +1411,12 @@ app.layout = html.Div(
                 html.Div(
                     className="section-header",
                     children=[
-                        html.P("Auswirkungen", className="section-step"),
+                        html.P("Auswirkungen", className="kicker"),
                         html.H2("Von Klimadaten zu spürbaren Veränderungen"),
-                        html.H3(
+                        html.P(
                             "Die bisherigen Beispiele zeigen, dass sich die Klimaerwärmung je nach Höhenlage "
-                            "unterschiedlich ausprägt."
+                            "unterschiedlich ausprägt.",
+                            className="subtitle",
                         ),
                         html.P(
                             "Doch welche Folgen ergeben sich daraus für Menschen, Pflanzen und die "
@@ -1307,33 +1431,90 @@ app.layout = html.Div(
                         html.Div(
                             className="impact-card",
                             children=[
-                                html.H3("Gesundheit und Energieversorgung"),
-                                html.P(
-                                    "Mehr Hitzetage belasten besonders ältere Menschen, Kinder und Personen mit Vorerkrankungen. "
-                                    "Gleichzeitig steigt an heissen Tagen der Kühlbedarf in Gebäuden, während Trockenperioden die "
-                                    "Wasserführung von Flüssen und damit die Wasserkraft und die Kühlung von Kernkraftwerken beeinflussen können."
+                                html.Div(
+                                    className="impact-card-layout",
+                                    children=[
+                                        html.Div(
+                                            className="impact-card-media",
+                                            children=[
+                                                html.Img(
+                                                    src="/assets/bern.jpg",
+                                                    className="impact-card-image",
+                                                ),
+                                            ],
+                                        ),
+                                        html.Div(
+                                            className="impact-card-content",
+                                            children=[
+                                                html.P("Gesundheit und Energieversorgung", className="content-title"),
+                                                html.P(
+                                                    "Mehr Hitzetage belasten besonders ältere Menschen, Kinder und Personen mit Vorerkrankungen. "
+                                                    "Gleichzeitig steigt an heissen Tagen der Kühlbedarf in Gebäuden, während Trockenperioden die "
+                                                    "Wasserführung von Flüssen und damit die Wasserkraft und die Kühlung von Kernkraftwerken beeinflussen können."
+                                                ),
+                                            ],
+                                        ),
+                                    ],
                                 ),
                             ],
                         ),
                         html.Div(
                             className="impact-card",
                             children=[
-                                html.H3("Garten und Pflanzen"),
-                                html.P(
-                                    "Frühere Wärme lässt Pflanzen früher austreiben und verlängert die Vegetationsperiode. "
-                                    "Das kann Chancen für neue Anbausorten eröffnen, erhöht aber auch das Risiko, dass junge Triebe durch späten Frost "
-                                    "geschädigt werden. In trockenen Sommern steigt zudem der Bewässerungsbedarf."
+                                html.Div(
+                                    className="impact-card-layout",
+                                    children=[
+                                        html.Div(
+                                            className="impact-card-media",
+                                            children=[
+                                                html.Img(
+                                                    src="/assets/Applebloom.jpg",
+                                                    className="impact-card-image",
+                                                ),
+                                            ],
+                                        ),
+                                        html.Div(
+                                            className="impact-card-content",
+                                            children=[
+                                                html.P("Garten und Pflanzen", className="content-title"),
+                                                html.P(
+                                                    "Frühere Wärme lässt Pflanzen früher austreiben und verlängert die Vegetationsperiode. "
+                                                    "Das kann Chancen für neue Anbausorten eröffnen, erhöht aber auch das Risiko, dass junge Triebe durch späten Frost "
+                                                    "geschädigt werden. In trockenen Sommern steigt zudem der Bewässerungsbedarf."
+                                                ),
+                                            ],
+                                        ),
+                                    ],
                                 ),
                             ],
                         ),
                         html.Div(
                             className="impact-card",
                             children=[
-                                html.H3("Lebensmittelsicherheit und Landwirtschaft"),
-                                html.P(
-                                    "Für die Landwirtschaft zählt nicht nur die Jahresmitteltemperatur, sondern die Kombination aus "
-                                    "Wärme, Wasserverfügbarkeit und Extremereignissen. Sie beeinflusst, welche Kulturen geeignet sind, "
-                                    "wann geerntet wird und ob genügend Futter für Nutztiere wächst."
+                                html.Div(
+                                    className="impact-card-layout",
+                                    children=[
+                                        html.Div(
+                                            className="impact-card-media",
+                                            children=[
+                                                html.Img(
+                                                    src="/assets/Oberburg.jpg",
+                                                    className="impact-card-image",
+                                                ),
+                                            ],
+                                        ),
+                                        html.Div(
+                                            className="impact-card-content",
+                                            children=[
+                                                html.P("Lebensmittelsicherheit und Landwirtschaft", className="content-title"),
+                                                html.P(
+                                                    "Für die Landwirtschaft zählt nicht nur die Jahresmitteltemperatur, sondern die Kombination aus "
+                                                    "Wärme, Wasserverfügbarkeit und Extremereignissen. Sie beeinflusst, welche Kulturen geeignet sind, "
+                                                    "wann geerntet wird und ob genügend Futter für Nutztiere wächst."
+                                                ),
+                                            ],
+                                        ),
+                                    ],
                                 ),
                             ],
                         ),
@@ -1343,7 +1524,7 @@ app.layout = html.Div(
                 html.Div(
                     className="takeaway-card",
                     children=[
-                        html.H3("Was nehme ich mit?"),
+                        html.P("Was nehme ich mit?", className="content-title"),
                         html.P(
                             "Klimawandel wirkt nicht überall gleich. Entscheidend ist, wann und wo sich Temperatur, Wasserverfügbarkeit "
                             "und Extremereignisse verändern. Deshalb müssen Klimadaten regional, saisonal und nach Höhenlage betrachtet werden."
@@ -1358,36 +1539,32 @@ app.layout = html.Div(
             className="section sdg-section",
             children=[
                 html.Div(
+                    className="wide-image-wrap",
                     children=[
                         html.Img(
                             src="/assets/Nebelmeer.png",
-                            style={"width": "100 %", "height": "auto", "border": None},
+                            className="wide-image",
                         )
                     ]
                 ),
                 html.Div(
                     className="section-header",
                     children=[
-                        html.P("Globale Einordnung", className="section-step"),
+                        html.P("Globale Einordnung", className="kicker"),
                         html.H2("Die Nachhaltigkeitsziele der UNO im Kontext"),
-                        html.H3("Die 17 Sustainable Development Goals (SDGs) definieren messbare Ziele im Bereich Klima, Ernährung, Energie und Gesundheit"),
                         html.P(
-                            "2015 verabschiedetet, mit einer Laufzeit bis "
-                            "2030, dienen sie vielen Ländern als Regelwerk bei der Umsetzung gesellschaftlich relevanter Ziele, "
-                            "so auch in der Schweiz."
+                            "Die 17 Sustainable Development Goals (SDGs) definieren messbare Ziele "
+                            "im Bereich Klima, Ernährung, Energie und Gesundheit.",
+                            className="subtitle",
                         ),
                         html.P(
-                            "Die Auswertungen der Klimadaten lassen sich in einen Zusammenhang mit den SDGs stellen. "
-                            "Überraschenderweise ist auch in den Nachhaltigkeitszielen eine Unterscheidung nach Höhenzonen erkennbar. "
-                            "Dabei werden 5 der 17 SDGs genauer unter die Lupe genommen und analysiert, welche "
+                            "Die SDGs dienen vielen Ländern als Leitplanke bei der Umsetzung gesellschaftlich relevanter Ziele, "
+                            "so auch in der Schweiz. Die Auswertungen der Klimadaten lassen sich in einen Zusammenhang mit den SDGs stellen und überraschenderweise "
+                            "ist auch in den Nachhaltigkeitszielen eine Unterscheidung nach Höhenzonen erkennbar. "
+                        ),
+                        html.P(
+                            "Wir nehmen 5 der 17 SDGs genauer unter die Lupe und analysieren, welche "
                             "Herausforderungen noch gemeistert werden müssen, aber auch welche Chancen sich eröffnen und welche Massnahmen angezeigt sind."
-                        ),
-                        html.P(
-                            "Die Klimadaten zeigen nicht nur regionale Unterschiede bei der Erwärmung. Sie verdeutlichen "
-                            "auch, dass sich die daraus entstehenden Herausforderungen je nach Höhenlage unterschiedlich "
-                            "gewichten. Während im Mittelland häufig Fragen zu Hitzebelastung, Energiebedarf und "
-                            "Siedlungsentwicklung im Vordergrund stehen, gewinnen in den Voralpen und Alpen Themen wie "
-                            "Wasserverfügbarkeit, Landwirtschaft und Biodiversität zusätzlich an Bedeutung."
                         ),
                     ],
                 ),
@@ -1399,30 +1576,24 @@ app.layout = html.Div(
                         "SDG 13 – Klimaschutz",
                             html.Div([
                                 html.P(
-                                    "Warum können wärmere Winter trotz mehr Sonnenstunden neue Herausforderungen schaffen?",
+                                    "Warum schaffen wärmere Winter trotz mehr Sonnenstunden neue Herausforderungen?",
                                     className="sdg-lead"
                                 ),
                                 html.P(
                                     "Die Auswertungen zeigen, dass sich das Mittelland im Winter stärker erwärmt als die "
-                                    "anderen Höhenzonen, vermutlich verursacht durch einen Rückgang der Inversionslagen und "
-                                    "damit durch einen Rückgang des Nebels als schützende Schicht. Obwohl sich viele von uns "
-                                    "über wärmere Temperaturen und mehr Sonnenlicht freuen, muss bedacht werden, dass der "
-                                    "Trockenstress für Pflanzen und Tiere durch diese Situation zunimmt. Ein bewusster Umgang "
-                                    "mit Wasser wird deshalb auch für Privathaushalte wichtiger werden."
-                                ),
-                                html.P(
-                                    "Die Zukunftsszenarien lassen uns erkennen, dass es sich lohnt weiter an "
-                                    "einer Reduktion des CO2-Ausstosses zu arbeiten, um die Folgen des Klimawandels zu begrenzen. "
+                                    "anderen Höhenzonen, vermutlich aufgrund des Rückgangs der Inversionslagen und "
+                                    "damit des Hochnebels als schützende Schicht. Obwohl sich viele von uns "
+                                    "über wärmere Temperaturen und mehr Sonnenlicht freuen, gibt es eine Kehrseite: Der "
+                                    "Trockenstress für Pflanzen und Tiere nimmt zu. Ein bewusster Umgang "
+                                    "mit Wasser wird deshalb auch für Privathaushalte immer wichtiger."
                                 ),
                                 html.P(
                                     "Gleichzeitig ist dieses Dashboard ein Beispiel dafür, wie wichtig verständlich aufbereitete "
-                                    "Klimadaten für für den allgemeinen Wissensaufbau sind. Regionale Unterschiede werden "
-                                    "sichtbar und können bei der Planung von Anpassungsmassnahmen berücksichtigt werden. "
-                                    "Genau hier setzt auch das SDG 13 an: Es fördert die Anpassung an den Klimawandel, den "
-                                    "Umgang mit seinen Folgen und die Information der Bevölkerung."
+                                    "Klimadaten für den allgemeinen Wissensaufbau sind, ein weiteres Thema des SDG 13, nebst "
+                                    "der Förderung von durchdachten Anpassungen an den Klimawandel und seiner Folgen."
                                 ),
                             ]),
-                            sdg_relevance( "●●●", "●●●", "●●●"), #Wird durch eine Funktion erzeugt
+                            sdg_relevance( "●●●", "●●", "●●"), #Wird durch eine Funktion erzeugt
                             SDG_13,
                         ),
                         sdg_card(
@@ -1430,27 +1601,25 @@ app.layout = html.Div(
                             "SDG 15 – Leben an Land",
                             html.Div([
                                 html.P(
-                                    "Die Vegetationsperiode verlängert sich – Welche Chancen und Risiken entstehen dardurch?",
+                                    "Längere Vegetationsperioden: Welche Chancen und Risiken bergen sie?",
                                     className="sdg-lead"
                                 ),
                                 html.P(
-                                    "In den Voralpen beginnt der Frühling heute früher als noch vor "
-                                    "wenigen Jahren. Für uns Menschen kann dies bedeuten, dass Wanderwege "
-                                    "und Alpenpässe früher zugänglich werden und sich Freizeitaktivitäten zunehmend "
-                                    "vom Ski- zum Wander- und Bike-Tourismus verlagern."
+                                    "In den Voralpen beginnt der Frühling früher als noch vor "
+                                    "wenigen Jahren. Für uns Menschen bedeutet dies, dass Wanderwege "
+                                    "und Alpenpässe früher zugänglich werden und sich der Ski-Tourismus hin zu Wander- und Bike-Aktivitäten verlagert."
                                 ),
                                 html.P(
                                     "Auch Pflanzen reagieren auf die zusätzlichen warmen Tage. Die Vegetationsperiode "
                                     "verlängert sich und eröffnet Chancen für neue Anbausorten oder höhere Erträge. "
-                                    "Gleichzeitig steigt jedoch das Risiko, dass junge Triebe durch Spätfrost oder Hagel "
-                                    "geschädigt werden. Zudem nimmt der Trockenstress für Böden, Pflanzen und Ökosysteme zu. "
+                                    "Gleichzeitig steigt das Risiko, dass junge Triebe durch Spätfrost oder Hagel "
+                                    "geschädigt werden und an Trockenstress leiden. "
                                 ),
                                 html.P(
-                                    "Diese Veränderungen betreffen nicht nur die Landwirtschaft, sondern auch die "
-                                    "biologische Vielfalt und die Stabilität ganzer Ökosysteme. Genau hier setzt das "
-                                    "SDG 15 an, das sich dem Schutz von Böden, Lebensräumen und der Biodiversität "
-                                    "widmet. Die Agrar- und Klimaforschung beschäftigt sich deshalb intensiv mit der "
-                                    "Frage, wie Landwirtschaft und Natur auf diese Veränderungen reagieren können."
+                                    "Diese Veränderungen betreffen die Stabilität ganzer Ökosysteme und genau hier setzt das "
+                                    "SDG 15 an: Es widmet sich dem Schutz von Böden, Lebensräumen und der Biodiversität "
+                                    "Die Agrar- und Klimaforschung beschäftigt sich intensiv mit der "
+                                    "Frage, wie die Landwirtschaft auf diese ökologischen Veränderungen reagieren kann."
                                 ),
                             ]),
                             sdg_relevance("●", "●●●", "●●●"),
@@ -1465,20 +1634,20 @@ app.layout = html.Div(
                                     className="sdg-lead"
                                 ),
                                 html.P(
-                                    "An heissen Sommertagen steigt der Bedarf an Kühlung von Wohnräumen, Büros "
-                                    "und Infrastruktur. Gleichzeitig nehmen Hitzetage im Mittelland deutlich zu. "
+                                    "An heissen Sommertagen steigt der Bedarf an Kühlung von Innenräumen. Gleichzeitig "
+                                    "nehmen Hitzetage im Mittelland deutlich zu. "
                                     "Was zunächst wie ein Komfortproblem erscheint, kann langfristig Auswirkungen auf "
                                     "die Energieversorgung haben."
                                 ),
                                 html.P(
-                                    "Auch die Situation in den Bergen spielt eine wichtige Rolle. Veränderungen der Schneemenge, der Gletscher "
+                                    "Dabei spielt die Situation in den Bergen ebenfalls eine wichtige Rolle. Veränderungen der Schneemenge, der Gletscher "
                                     "und des Wasserhaushalts beeinflussen die Verfügbarkeit von Wasser für die Produktion "
                                     "von Wasserkraft und für die Kühlung von Kernkraftwerken. "
                                 ),
                                 html.P(
-                                    "Das SDG 7 verfolgt genau dieses Ziel: Eine sichere und nachhaltige Energieversorgung auch unter "
-                                    "veränderten klimatischen Bedingungen. Gleichzeitig passt die Verfügbarkeit von Sonnenenergie immer besser zu "
-                                    "einem Energiebedarf, der sich von Heizleistungen im Winter zunehmend in Richtung Kühlleistungen im "
+                                    "Das SDG 7 verfolgt das Ziel einer sicheren und nachhaltigen Energieversorgung auch unter "
+                                    "veränderten klimatischen Bedingungen. Gleichzeitig passt die saisonale Verfügbarkeit von Sonnenenergie immer besser zu "
+                                    "einem Energiebedarf, der sich von Heizleistungen im Winter in Richtung Kühlleistungen im "
                                     "Sommer verschiebt."
                                 ),
                             ]),
@@ -1498,11 +1667,10 @@ app.layout = html.Div(
                                     "Landwirtschaft gegenüber Trockenheit, Hitze und Extremereignissen an Bedeutung."
                                 ),
                                 html.P(
-                                    "Landwirte und Rebbauern müssen ihre Anbaumethoden laufend an veränderte klimatische Bedingungen "
-                                    "anpassen. Welche Herausforderungen dabei im Vordergrund stehen, hängt stark von den lokalen Gegebenheiten "
+                                    "Landwirte müssen ihre Anbaumethoden laufend an veränderte klimatische Bedingungen "
+                                    "anpassen. Massnahmen hängen stark von den lokalen Gegebenheiten "
                                     "und der Höhenlage ab. Neue Kulturen werden möglich, gleichzeitig verändern sich Wasserbedarf, "
-                                    "Schädlingsdruck und Erntezeitpunkt. Die langfristige Sicherung der Lebensmittelproduktion wird dadurch "
-                                    "anspruchsvoller. Eine sichere und nachhaltige Lebensmittelproduktion steht im Zentrum des SDG 2."
+                                    "Schädlingsdruck und Erntezeitpunkt. Eine sichere und nachhaltige Lebensmittelproduktion steht im Zentrum des SDG 2."
                                 ),
                                 html.P(
                                     "Agrarforschung und nachhaltige Landwirtschaft helfen dabei, die Versorgungssicherheit auch unter "
@@ -1521,18 +1689,16 @@ app.layout = html.Div(
                                     className="sdg-lead"
                                 ),
                                 html.P(
-                                    "Hitzewellen und klimabedingte Risiken stellen zunehmend auch Städte vor "
-                                    "Herausforderungen. Die steigende Zahl von Hitzetagen im Mittelland verdeutlicht "
-                                    "die Notwendigkeit von Anpassungsmassnahmen, insbesondere die Kühlung von städtischen "
-                                    "Zentren. Für die Raumentwicklung müssen neue Strategien entwickelt werden, welche den "
-                                    "veränderten Umweltbedingungen Rechnung tragen und die regionalen Unterschiede "
-                                    "berücksichtigen. Die Anpassung von Städten und Siedlungsräumen an veränderte Umweltbedingungen "
+                                    "Die steigende Zahl von Hitzetagen im Mittelland stellen die Städte vor "
+                                    "Herausforderungen und unterstreicht die Notwendigkeit von Massnahmen, "
+                                    "insbesondere die Kühlung von städtischen Zentren. "
+                                    "Die Anpassung von Städten und Siedlungsräumen an veränderte Umweltbedingungen "
                                     "gehört zu den Kernaufgaben des SDG 11."
                                 ),
                                 html.P(
-                                    "Während eine verdichtete Siedlungsentwicklung in den Voralpen und Alpen dazu beitragen "
-                                    "kann, den Flächenverbrauch zu begrenzen und den Lebensraum in Bergregionen zu erhalten, "
-                                    "stehen die Städte des Mittellands vor einer anderen Herausforderung. Dort werden "
+                                    "Während eine verdichtete Siedlungsentwicklung in den Voralpen und Alpen dazu beiträgt, "
+                                    "den Flächenverbrauch zu begrenzen und den Lebensraum in Bergregionen zu erhalten, "
+                                    "zeigt sich in den Städten des Mittellands ein anderes Bild: Dort werden "
                                     "ausreichend Grün- und Freiflächen benötigt, um Hitzeinseln zu reduzieren und die "
                                     "Lebensqualität auch an heissen Sommertagen zu erhalten. "
                                 ),
@@ -1546,11 +1712,19 @@ app.layout = html.Div(
                 html.Div(
                     className="sources",
                     children=[
-                        html.H3("Daten und Quellen"),
+                        html.P("Daten und Quellen", className="content-title"),
                         html.P(
                             "MeteoSchweiz Klimaszenarien CH2025 und weitere Inhalte, E-OBS HOM Klimadaten, eigene Auswertungen, "
-                            "UNO Nachhaltigkeitsziele, Bundesamt für Statistik, Bundesamt für wirtschaftliche Landesversorgung blw, "
+                            "UNO Nachhaltigkeitsziele, Bundesamt für Statistik, Bundesamt für wirtschaftliche Landesversorgung BWL, "
                             "European Environment Agency EEA, SwissNAMES3D."
+                        ),
+                        html.P(
+                            "Bild 1: SRF Meteo, Wetterbild des Monats Mai 2024, Herzogenbuchsee BE, Michael Wüthrich. "
+                            "Bild 2: SRF Meteo, Wetterbild des Monats April 2024, Ballmoos BE, Tobias Messerli. "
+                            "Bild 3: SRF Meteo, Wetterbild des Monats Juli 2022, Bern, Tobias Messerli."
+                            "Bild 4: Fotografie: Daniela Fischer, Apfelblüte in Buchs AG."
+                            "Bild 5: SRF Meteo, Wetterbild des Monats Juni 2026, Oberburg BE, Tobias Messerli."
+                            "Bild 6: Fotografie: Daniela Fischer, Blick von Crans-Montana Richtung Süden."
                         ),
                         html.P(
                             "Entwickelt im Rahmen des Klimadaten Open Learning Frühlingssemester 2026"
@@ -1729,8 +1903,8 @@ def update_monthly_profile(location, metric, scenario, scenario_2):
 
     fig.update_layout(
         title=f"{place_name} – {metric_labels.get(metric, metric)}",
-        xaxis_title="Monat",
-        yaxis_title=metric_labels.get(metric, metric),
+        xaxis_title=None,
+        yaxis_title=y_axis_labels.get(metric, None),
         legend_title_text="Vergleich",
         margin=dict(l=40, r=20, t=80, b=20),
         height=380,
@@ -1755,4 +1929,4 @@ def update_monthly_profile(location, metric, scenario, scenario_2):
     return fig, interpretation
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(debug=True)
