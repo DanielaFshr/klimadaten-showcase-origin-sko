@@ -868,7 +868,7 @@ app.layout = html.Div(
                     className="wide-image-wrap hero-image-wrap",
                     children=[
                         html.Img(
-                            src="/assets/herzogenbuchsee.jpg",
+                            src="/assets/aniket-unsplash_small.jpg",
                             className="wide-image hero-image",
                         )
                     ]
@@ -1719,7 +1719,7 @@ app.layout = html.Div(
                             "European Environment Agency EEA, SwissNAMES3D."
                         ),
                         html.P(
-                            "Bild 1: SRF Meteo, Wetterbild des Monats Mai 2024, Herzogenbuchsee BE, Michael Wüthrich. "
+                            "Bild 1: Foto von Aniket Bhattacharya auf Unsplash. "
                             "Bild 2: SRF Meteo, Wetterbild des Monats April 2024, Ballmoos BE, Tobias Messerli. "
                             "Bild 3: SRF Meteo, Wetterbild des Monats Juli 2022, Bern, Tobias Messerli."
                             "Bild 4: Fotografie: Daniela Fischer, Apfelblüte in Buchs AG."
