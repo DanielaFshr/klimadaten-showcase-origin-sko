@@ -911,7 +911,7 @@ app.layout = html.Div(
                                                        href="#section-c"),
                                                 html.A("Einordnung Alltag und Lebensmittelproduktion",
                                                        href="#section-d"),
-                                                html.A("UN-Klimaziele im Kontext",
+                                                html.A("UN-Nachhaltigkeitsziele im Kontext",
                                                        href="#section-e"),
                                             ],
                                         ),
